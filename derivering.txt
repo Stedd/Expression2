@@ -1,0 +1,13 @@
+@name Derivering
+@inputs K X S Accum RSQ
+@outputs K X S Sinv Vinkel Reseta Accumon Deltas RSS RSR
+@persist M1
+@trigger 
+
+RSS= (X < 40)
+RSR = (X >= 2980)
+Accumon = 400 * RSQ  
+Reseta = Accum > 3000
+Sinv = X / S
+Vinkel = asin(Sinv)
+Deltas = $S

@@ -1,0 +1,52 @@
+@name Harvester
+@inputs Gr1H Carrier:entity Dr1:entity  T1x T1y T1z Start ADVi T2x T2y T2z Dr2:entity
+@outputs NxtT1 Gr1 RangeEr1:vector2 
+@persist ApplyforceDrone1:vector Idle:vector AT1:angle T1:vector Dpos1:vector T2:vector AT2:angle ApplyforceDrone2:vector
+@trigger 
+runOnTick(1)
+    
+###Drone movement parameters------------------------
+    AFDF        = 20            #Apply force delta faktor
+    AAFDF       = 13            #Apply angular force delta faktor
+    PAF         = 5             #Avviksforsterning Posisjon
+    AAF         = 15            #Avviksforsterkning Vinkel
+    ZAdjust     = 90            #Hoydeavvik
+    Rangemin    = vec2(-50,-50) #Range min
+    Rangemax    = vec2(50,50)   #Range max
+    
+#Drone 1 Movement------------------------------------------------------------------------------------------------------------------------
+
+#Ball Found Skal-Er
+    Pos1 =(vec2(T1x,T1y)-(vec2(Dr1:pos():x(),Dr1:pos():y())))
+    Pos2 =(vec2(T1x,T1y)-(vec2(Dr1:pos():x(),Dr1:pos():y())))
+    Pos3 =(vec2(T1x,T1y)-(vec2(Dr1:pos():x(),Dr1:pos():y())))
+    Pos4 =(vec2(T1x,T1y)-(vec2(Dr1:pos():x(),Dr1:pos():y()))) 
+#Keep Upright
+    AT1 = (ang(0,0,0) - Dr1:angles())*AAF
+    Dr1:applyAngForce(AT1+($AT1*AAFDF))
+#Idle position
+    Idle = (vec(870,-490,200) - Dr1:pos())*Dr1:mass()*PAF
+#Sequence-----------------------------------------------------------------------------------------------------------------------------------
+    #1 Start Kjr til ball
+    if(inrange(RangeEr1,Rangemin,Rangemax)){
+            #Gr1 = 0
+            #T1 = (vec(T1x,T1y,(T1z+ZAdjust)) - Dr1:pos())*Dr1:mass()*PAF
+            #Dr1:applyForce(T1+($T1*AFDF))
+}
+    #2 Grab ball 
+    if (inrange(RangeEr2,Rangemin,Rangemax))
+    {
+            #Gr1 = 0
+            #T1 = (vec(T1x,T1y,(T1z+ZAdjust)) - Dr1:pos())*Dr1:mass()*PAF
+            #Dr1:applyForce(T1+($T1*AFDF))
+    }       
+    #3lever ball
+            Dpos1= (vec(500,500,100) - Dr1:pos())*PAF
+            #Dr1:applyForce(Dpos1+($Dpos1*AFDF))
+
+#Applyforce
+T1 = (vec(T1x,T1y,(T1z+ZAdjust)) - Dr1:pos())*Dr1:mass()*PAF
+ApplyforceDrone1 = T1
+Dr1:applyForce(ApplyforceDrone1+($ApplyforceDrone1*AFDF))
+
+

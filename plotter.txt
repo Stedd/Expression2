@@ -1,0 +1,8 @@
+@name Plotter
+@inputs T
+@outputs X Y
+@persist 
+@trigger 
+
+Y = 2*T^2
+X = T

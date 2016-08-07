@@ -1,0 +1,53 @@
+@name Drone 1
+@inputs Dr1:entity Start Stop
+@outputs M1 S1 S2 S3 S4 Apply:vector
+@persist AngleReg:angle Pos1:vector Pos2:vector Pos3:vector Pos4:vector Apply:vector
+@trigger 
+runOnTick(1)
+    
+###Drone movement parameters------------------------
+    AFDF        = 20            #Apply force delta faktor
+    AAFDF       = 13            #Apply angular force delta faktor
+    PAF         = 5             #Avviksforsterning Posisjon
+    AAF         = 15            #Avviksforsterkning Vinkel
+    ZAdjust     = 90            #Hoydeavvik
+    Rangemin    = vec2(-50,-50) #Range min
+    Rangemax    = vec2(50,50)   #Range max
+
+#Keep Upright
+
+    AngleReg = (ang(0,0,0) - Dr1:angles())*AAF
+    Dr1:applyAngForce(AngleReg+($AngleReg*AAFDF))
+
+#Hovedminne
+if (Start==1){
+    M1 =1
+}
+elseif (Stop==1){
+    M1=0
+}
+
+#Sekvens
+#1
+if (M1 == 1|(inrange(Apply,vec(-5,-5,175),vec(5,5,185)))){   
+    print("Got to pos1")
+    Apply = (vec(782,-432,200) - Dr1:pos())*Dr1:mass()*PAF
+    
+}
+#2
+elseif(inrange(Apply,vec(-5,-5,175),vec(5,5,185))){
+    print("Got to pos2")
+    Apply = (vec(778,500,200) - Dr1:pos())*Dr1:mass()*PAF
+}
+#3
+elseif(inrange(Apply,vec(-5,-5,175),vec(5,5,185))){
+    print("Got to pos3")
+    Apply = (vec(1265,500,200) - Dr1:pos())*Dr1:mass()*PAF
+}
+#4
+elseif(inrange(Apply,vec(-5,-5,175),vec(5,5,185))){
+    print("Got to pos4")
+    Apply = (vec(1268,-450,200) - Dr1:pos())*Dr1:mass()*PAF
+}
+
+Dr1:applyForce(Apply+$Apply*AFDF)

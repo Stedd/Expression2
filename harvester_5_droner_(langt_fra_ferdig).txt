@@ -1,0 +1,73 @@
+@name Harvester
+@inputs Gr1H Gr2H Gr3H Gr4H Gr5H Carrier:entity Dr1:entity Dr2:entity Dr3:entity Dr4:entity Dr5:entity T1x T1y T1z T2x T2y T2z T3x T3y T3z T4x T4y T4z T5x T5y T5z
+@outputs NxtT1 NxtT2 NxtT3 NxtT4 NxtT5 Gr1 Gr2 Gr3 Gr4 Gr5 RangeEr1:vector2
+@persist 
+@trigger 
+runOnTick(1)
+
+#Carrier movement--------------------------------
+    #Position
+    C1 = (vec(2000,-2000,300) - Carrier:pos())*100
+        Carrier:applyForce(C1+($C1*1)*1)
+    
+###Drone movement parameters------------------------
+    AFDF= 15    #Apply force delta faktor
+    AAFDF = 7   #Apply angular force delta faktor
+    PAF = 15    #Avviksforsterning Posisjon
+    AAF = 20    #Avviksforsterkning Vinkel
+    ZAdjust = 90    #Hydeavvik
+    Rangemin = vec2(-50,-50)
+    Rangemax = vec2(50,50)
+#Drone 1 Movement----------------------------------
+
+###Ball Found criteria
+RangeEr1 =(vec2(T1x,T1y)-(vec2(Dr1:pos():x(),Dr1:pos():y())))
+RangeEr2 =(vec2(500,500)-(vec2(Dr1:pos():x(),Dr1:pos():y())))
+#Angle   
+    AT1 = (ang(0,0,0) - Dr1:angles())*AAF
+    Dr1:applyAngForce(AT1+($AT1*AAFDF))
+        
+        if(inrange(RangeEr1,Rangemin,Rangemax)){
+            Gr1 = 1
+            Dpos1= (vec(500,500,100) - Dr1:pos())*PAF
+            Dr1:applyForce(Dpos1+($Dpos1*AFDF))
+}
+        elseif (inrange(RangeEr2,Rangemin,Rangemax))
+    {
+            Gr1 = 0
+            T1 = (vec(T1x,T1y,(T1z+ZAdjust)) - Dr1:pos())*PAF
+            Dr1:applyForce(T1+($T1*AFDF))
+    }       
+#[Drone 2 Movement---------------------------------
+    #Posistion
+    T2 = (vec(T2x,T2y,(T2z+ZAdjust)) - Dr2:pos())*PAF
+        Dr2:applyForce(T2+($T2*AFDF))
+    #Angle    
+    AT2 = (ang(0,0,0) - Dr2:angles())*AAF
+        Dr2:applyAngForce(AT2+($AT2*AAFDF))
+        
+#Drone 3 Movement---------------------------------
+    #Posistion
+    T3 = (vec(T3x,T3y,(T3z+ZAdjust)) - Dr3:pos())*PAF
+        Dr3:applyForce(T3+($T3*AFDF))
+    #Angle
+    AT3 = (ang(0,0,0) - Dr3:angles())*AAF
+        Dr3:applyAngForce(AT3+($AT3*AAFDF))
+        
+#Drone 4 Movement---------------------------------
+    #Posistion
+    T4 = (vec(T4x,T4y,(T4z+ZAdjust)) - Dr4:pos())*PAF
+        Dr4:applyForce(T4+($T4*AFDF))
+    #Angle
+    AT4 = (ang(0,0,0) - Dr4:angles())*AAF
+        Dr4:applyAngForce(AT4+($AT4*AAFDF))
+        
+#Drone 5 Movement---------------------------------
+    #Posistion
+    T5 = (vec(T5x,T5y,(T5z+ZAdjust)) - Dr5:pos())*PAF
+        Dr5:applyForce(T5+($T5*AFDF))
+    #Angle
+    AT5 = (ang(0,0,0) - Dr5:angles())*AAF
+        Dr5:applyAngForce(AT5+($AT5*AAFDF))
+
+]#

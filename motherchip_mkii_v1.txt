@@ -1,0 +1,94 @@
+@name Motherchip MKII v1
+@inputs ClusterPos:vector Drone1free Drone2free Drone3free Drone4free
+@outputs Parameters:array Dronepos1:array Dronepos2:array Dronepos3:array Dronepos4:array
+@persist ClusterPos:vector Mothership:entity AngleReg:angle ApplyForce:vector CloseBalls:array
+@trigger
+@model models/Mechanics/roboticslarge/k1.mdl
+runOnTick(1)
+
+#   http://wiki.wiremod.com/wiki/Expression_2
+
+if(first()){
+    ###Drone movement parameters------------------------
+    AFDF        = 20                    #Apply force delta faktor
+    AAFDF       = 13                    #Apply angular force delta faktor
+    PAF         = 2                     #Avviksforsterning Posisjon
+    AAF         = 7                     #Avviksforsterkning Vinkel
+    ZAdjust     = 80                    #Hoydeavvik
+    Rangemin2d    = vec2(-2,-2)         #2D Range min
+    Rangemax2d    = vec2(2,2)           #2D Range max
+    RangeminS2d   = vec2(-1,-1)         #2D Streng Range min
+    RangemaxS2d   = vec2(1,1)           #2D Streng Range max
+    Rangemin3d    = vec(-20,-20,-20)    #3D Range min
+    Rangemax3d    = vec(20,20,20)       #3D Range max
+    RangeminS3d   = vec(-10,-10,-10)    #3D Streng Range min
+    RangemaxS3d   = vec(10,10,10)       #3D Streng Range max
+    #Drone movement parameters array(send to drones)
+    Parameters = array(AFDF,AAFDF,PAF,AAF,ZAdjust,Rangemin2d,Rangemax2d,RangeminS2d,RangemaxS2d,Rangemin3d,Rangemax3d,RangeminS3d,RangemaxS3d)
+    #Reset sekvens
+    Steg = 0
+    #Set Entity
+    Mothership = entity()
+}
+#Movement------------------------------------------------------------------------
+#Keep Upright
+    AngleReg = (ang(0,0,0) - Mothership:angles())*Mothership:mass()*20
+    Mothership:applyAngForce(AngleReg+($AngleReg*5))
+#Applyforce
+    
+    Mothership:applyForce(ApplyForce+$ApplyForce*5)
+#Idle Position
+   if(Steg==0){
+        
+        ApplyForce = (vec(-6650,7190,-3447) - Mothership:pos())*Mothership:mass()*10
+    }
+#Initiering av sekvens
+    if((ClusterPos:x()!=0 && ClusterPos:x()!=0)){
+        Steg = 1
+    }
+
+#Sekvens-------------------------------------------------------------------------
+#1--------------
+if (Steg==1){
+    ApplyForce = (ClusterPos - Mothership:pos())*Mothership:mass()*10
+        if(inrange(ApplyForce,Rangemin3d,Rangemax3d)){
+            Steg=2
+        }
+}
+#2--------------
+elseif(Steg==2){
+    ApplyForce = (ClusterPos - Mothership:pos())*Mothership:mass()*10
+    findByModel("models/xqm/rails/gumball_1.mdl")
+    findSortByDistance(Mothership:pos())
+    CloseBalls = findToArray()
+        if(CloseBalls:count() != 0){
+            Steg=3
+        }
+}
+#3--------------
+elseif(Steg==3){
+    ApplyForce = (ClusterPos - Mothership:pos())*Mothership:mass()*10
+    Dronepos1 = array(CloseBalls[1,entity],CloseBalls[5,entity],CloseBalls[9,entity],CloseBalls[13,entity])
+    Dronepos2 = array(CloseBalls[2,entity],CloseBalls[6,entity],CloseBalls[10,entity],CloseBalls[14,entity])
+    Dronepos3 = array(CloseBalls[3,entity],CloseBalls[7,entity],CloseBalls[11,entity],CloseBalls[15,entity])
+    Dronepos4 = array(CloseBalls[4,entity],CloseBalls[8,entity],CloseBalls[12,entity],CloseBalls[16,entity])
+        if( Dronepos1:sum()!= 0 && Dronepos2:sum()!= 0 && Dronepos3:sum()!= 0 && Dronepos4:sum()!= 0){
+                Steg=4
+        }
+}
+#4--------------
+elseif(Steg==4){    
+    ApplyForce = (ClusterPos - Mothership:pos())*Mothership:mass()*10
+        if(Drone1free == 1 && Drone2free == 1 && Drone3free == 1 && Drone4free == 1){
+            Steg=5
+        }
+}
+#5--------------
+elseif(Steg==5){   
+                #deliver balls position
+    ApplyForce = (vec(-6650,7190,-3447) - Mothership:pos())*Mothership:mass()*10
+            if(inrange(ApplyForce,Rangemin3d,Rangemax3d)){
+                Steg=0
+            }
+    }
+

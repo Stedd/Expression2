@@ -1,0 +1,12 @@
+@name 
+@inputs Timer Prop:entity
+@outputs M1:vector
+@persist M1:vector
+@trigger all
+runOnTick(1)
+
+Sin=(sin(Timer)*200)
+Cos=(cos(Timer)*200)
+M1 = ((Prop:pos() - entity():pos()) + vec(Sin,Cos,-300))
+Prop:applyForce(-M1*Prop:mass())
+

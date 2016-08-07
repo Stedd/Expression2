@@ -1,0 +1,21 @@
+@name Autoturret markII v3
+@inputs Mot Hos Bearing Lock Pluss Dist
+@outputs Vinkel Thruster Fire Minne1
+@persist 
+@trigger all
+
+#YEEEEES
+Mot1 = ( Mot + 0 )
+M1 = atan( Mot1 / Hos )
+M2 = $Mot * (2.5)
+Vinkel1 = M1 + Mot + M2
+Vinkel = Lock * Vinkel1
+
+
+
+Delta = $Bearing * 4.7 *
+Thruste = ( Bearing * ( Hos / 250 )) + Delta
+Thruster = Lock * Thruste
+
+Fire = ( ( $Mot < 0.1 ) & ( $Bearing < 0.1 ) & Pluss & Lock )
+Minne1 = ( Hos / 400 )

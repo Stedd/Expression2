@@ -1,0 +1,18 @@
+@name 
+@inputs 
+@outputs 
+@persist 
+@trigger 
+
+#[
+    Scopes have been added. If you find any bugs,
+    please report them on the forums.
+
+    An option to copy with bbcode color syntax
+    highlighting has been added (for use on forums).
+    Right click anywhere in the editor to use it.
+
+    Documentation and examples are available at:
+    http://wiki.wiremod.com/wiki/Expression_2
+    The community is available at http://www.wiremod.com
+]#

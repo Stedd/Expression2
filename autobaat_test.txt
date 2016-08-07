@@ -1,0 +1,11 @@
+@name 
+@inputs Test
+@outputs 
+@persist 
+@trigger all
+
+# 2009-03-16: Wirelinks now duplicate properly and autosave added to editor!
+
+# Documentation and examples available at:
+# http://wiki.garrysmod.com/wiki/?title=Wire_Expression2
+# The community is available at http://www.wiremod.com

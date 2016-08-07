@@ -1,0 +1,16 @@
+@name Drone 1
+@inputs Dr1:entity Button
+@outputs RangeEr1:vector2
+@persist
+@trigger 
+runOnTick(1)
+    
+###Drone movement parameters------------------------
+    AFDF        = 20            #Apply force delta faktor
+    AAFDF       = 13            #Apply angular force delta faktor
+    PAF         = 5             #Avviksforsterning Posisjon
+    AAF         = 15            #Avviksforsterkning Vinkel
+    ZAdjust     = 90            #Hoydeavvik
+    Rangemin    = vec2(-50,-50) #Range min
+    Rangemax    = vec2(50,50)   #Range max
+

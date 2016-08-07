@@ -1,0 +1,40 @@
+@name Drone 1,2,3,4 MKI v1
+@inputs Parameters:array DronePos:array
+@outputs Dronefree
+@persist Drone:entity ApplyForce:vector AngleReg:angle Mothership:array
+@model models/hunter/blocks/cube05x05x05.mdl
+runOnTick(1)
+
+if(first()){
+
+#Find mothership    
+findByModel("models/Mechanics/roboticslarge/k1.mdl")
+Mothership = findToArray()
+   
+#Set Entity
+    Drone = entity()
+    Drone:setMass(200)
+    
+}
+#Keep Upright
+    AngleReg = (Mothership[1,entity]:angles() - Drone:angles())*Drone:mass()*Parameters[4,number]
+    Drone:applyAngForce(AngleReg+($AngleReg*Parameters[2,number]))
+
+#Applyforce
+    Drone:applyForce(ApplyForce+$ApplyForce*Parameters[1,number])
+    
+#Idle position (testfase)
+
+
+
+if(!(DronePos:exists(1) == 0)){
+    ApplyForce = ((vec(cos(DronePos[1,vector]:x()),sin(DronePos[1,vector]:y()),DronePos[1,vector]:z()) + vec(0,0,80)) - Drone:pos())*Drone:mass()*Parameters[3,number]
+    
+        if(inrange((vec2(DronePos[1,vector]:x(),DronePos[1,vector]:y()) - vec2(Drone:pos():x(),Drone:pos():y())),Parameters[6,vector2],Parameters[7,vector2])){
+            Steg = 2
+            
+        }
+}
+else{
+    ApplyForce = ((Mothership[1,entity]:pos()+vec(36,-50,0)) - Drone:pos())*Drone:mass()*Parameters[3,number]
+}

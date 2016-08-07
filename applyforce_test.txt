@@ -1,0 +1,8 @@
+@name Applied Force Test
+@inputs Prop:entity
+@outputs 
+@persist V:vector
+@trigger all
+runOnTick(1)
+
+Prop:pos() - (entity():pos()) + vec(0,0,150)

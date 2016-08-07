@@ -1,0 +1,37 @@
+@name radar
+@inputs Vinkel Distanse Dybde Dybdesjekk Pole:entity Toggle Skaleringz Skaleringxz
+@outputs X Y M1 Hydraulic Alarm Xhol Yhol Z
+@persist 
+@trigger 
+runOnTick(1)
+
+
+#Plotting Holo
+Z = (Dybdesjekk / 5300) * Skaleringz
+Xhol = X * Skaleringxz
+Yhol = Y * Skaleringxz
+#Plotting Osciloscope
+M1 = Distanse / 13000
+X = (cos(Vinkel+85)) * M1
+Y = (sin(Vinkel+85)) * M1
+
+#Spin
+if (Toggle == 1 & (Pole:angVel() < ang(0,0,50))){
+    Pole:applyAngForce(ang(0,0,200))
+}
+
+#Safeguard
+if (Dybdesjekk<200){
+    M2=0
+} 
+else {
+    M2=1   
+}
+Hydraulic = Dybde * M2
+
+if (!M2|(M1<0.02)){
+    Alarm = 1
+}
+else {
+    Alarm = 0
+}

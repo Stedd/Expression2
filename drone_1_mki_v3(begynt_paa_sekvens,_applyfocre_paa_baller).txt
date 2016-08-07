@@ -1,0 +1,92 @@
+@name Drone 1 MKI v3(Begynt paa sekvens, applyfocre paa baller)
+@inputs Parameters:array DronePos:array
+@outputs Dronefree Steg Debug:vector2 Ball1Reg:vector
+@persist Drone:entity ApplyForce:vector AngleReg:angle Mothership:array Yaw CloseBall:array Ball1Reg:vector Ball1:entity Ball2Reg:vector Ball3Reg:vector Ball4Reg:vector M1
+@model models/hunter/blocks/cube05x05x05.mdl
+runOnTick(1)
+
+#First
+
+    if(first()){
+    
+        #Sekvens reset
+        Steg  = 0
+        M1    = 0
+
+        #Find mothership    
+        findByModel("models/Mechanics/roboticslarge/k1.mdl")
+        Mothership = findToArray()
+           
+        #Set Entity
+        Drone = entity()
+        Drone:setMass(200)
+    }
+    
+#Keep Upright
+
+    AngleReg = (Mothership[1,entity]:angles() - Drone:angles())*Drone:mass()*Parameters[4,number]
+    Drone:applyAngForce(AngleReg+($AngleReg*Parameters[2,number]))
+
+#Applyforce
+
+    Drone:applyForce(ApplyForce+$ApplyForce*Parameters[1,number])
+    Ball1:applyForce(Ball1Reg+$Ball1Reg*Parameters[1,number])
+#Sekvens start og Idle position
+
+    if (DronePos:exists(1) && !M1 ){
+        print("start kriterie mott")
+        M1    = 1
+        Steg  = 1
+    }
+    elseif(DronePos:exists(1) == 0){
+        print("stopp kriterie mott")
+        Steg        = 0
+        M1          = 0
+        Yaw         = Mothership[1,entity]:angles():yaw()
+        ApplyForce  = ((vec((36*cos(Yaw)+50*sin(Yaw)),36*sin(Yaw)-50*cos(Yaw),0) + Mothership[1,entity]:pos()) - Drone:pos())*Drone:mass()*Parameters[3,number]
+    }
+
+#Sekvens------------------------------------------------------------------------------------------------------------------------------------------------
+#1
+if(Steg == 1){
+    ApplyForce = ((DronePos[1,vector] + vec(0,0,Parameters[5,number])) - Drone:pos())*Drone:mass()*Parameters[3,number]
+        if(inrange((vec2(DronePos[1,vector]:x(),DronePos[1,vector]:y()) - vec2(Drone:pos():x(),Drone:pos():y())),Parameters[6,vector2],Parameters[7,vector2])){
+            Steg = 2    
+        }
+}
+#2
+elseif(Steg==2){
+    ApplyForce = ((DronePos[1,vector] + vec(0,0,Parameters[5,number])) - Drone:pos())*Drone:mass()*Parameters[3,number]
+    findByModel("models/xqm/rails/gumball_1.mdl")
+    findClipToSphere(Drone:pos(),40)
+    CloseBall = findToArray()
+    Ball1 = CloseBall[1,entity]
+    Ball1:setMass(5500)
+    Ball1Reg = ((Drone:pos()+vec(0,-30,0)) - Ball1:pos())*Ball1:mass()*Parameters[3,number]
+        if(CloseBall:exists(1) == 1){
+            Steg=3
+        } 
+}
+#3
+elseif(Steg == 3){
+    ApplyForce = ((DronePos[2,vector] + vec(0,0,Parameters[5,number])) - Drone:pos())*Drone:mass()*Parameters[3,number]
+        if(inrange((vec2(DronePos[2,vector]:x(),DronePos[2,vector]:y()) - vec2(Drone:pos():x(),Drone:pos():y())),Parameters[6,vector2],Parameters[7,vector2])){
+            Steg = 4    
+        }
+}
+
+elseif(Steg==4){
+    ApplyForce = ((DronePos[1,vector] + vec(0,0,Parameters[5,number])) - Drone:pos())*Drone:mass()*Parameters[3,number]
+    findByModel("models/xqm/rails/gumball_1.mdl")
+    findClipToSphere(Drone:pos(),40)
+    CloseBall = findToArray()
+    CloseBall[2,entity]:setMass(5500)
+    Ball1Reg = ((Drone:pos()+vec(0,0,30)) - CloseBall[2,entity]:pos())*Ball1:mass()*Parameters[3,number]
+        if(CloseBall:exists(1) == 1){
+            Steg=3
+        } 
+}   
+Debug = vec2(DronePos[1,vector]:x(),DronePos[1,vector]:y()) - vec2(Drone:pos():x(),Drone:pos():y())
+
+
+

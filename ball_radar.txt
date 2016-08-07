@@ -1,0 +1,36 @@
+@name Ball Radar
+@inputs Rescan Screen:wirelink
+@outputs ClusterPos:vector HappyBalls:array I Balls:array Debug Status
+@persist Balls:array HappyBalls:array Clusterpos:vector Scan
+@trigger 
+interval(50)
+#Search and put in array---------------------------------------------------------
+if(first()|~Rescan){
+    print("Scan starting**********************")
+    I               = 0
+    Scan            = 0
+    Balls           = array()
+    HappyBalls      = array()   
+    print("Arrays reset")
+    findByModel("models/xqm/rails/gumball_1.mdl")
+    Balls = findToArray()
+    print("first complete")
+}
+#Cluster finder------------------------------------------------------------------
+if(Scan ==0 ){
+    
+        if(findCanQuery()==1 && !(I>=Balls:count())){
+                findInSphere(Balls[I,entity]:pos(),600)
+                HappyBalls[I,number] = findClipToModel("models/xqm/rails/gumball_1.mdl")
+                Screen:egpText(2,toString(ceil(((I/Balls:count())*100))),vec2(20,50))
+                I++
+        }
+        else{
+            print("Scan complete")
+            Scan = 1
+        }
+}
+   
+#Posisjonen til en ball i det storste clusteret
+ClusterPos = ((Balls[HappyBalls:maxIndex(),entity]:pos())+vec(0,0,100))
+

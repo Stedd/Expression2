@@ -1,0 +1,47 @@
+@name Ball Radar MKII v1
+@inputs Rescan Screen:wirelink
+@outputs ClusterPos:vector I Balls:array Debug Status Scan
+@persist Balls:array HappyBalls:array 
+@trigger
+@model models/micropro/AtlantisDHD/atlantis_dhd.mdl
+interval(50)
+#Search and put in array---------------------------------------------------------
+if(first()|~Rescan){
+    Screen:egpClear()
+    Screen:egpText(1,"Ball radar initiating. Scanning for balls",vec2(10,250))
+    Screen:egpSize(1,15)
+    I               = 0
+    Scan            = 0
+    Balls           = array()
+    HappyBalls      = array()   
+    findByModel("models/xqm/rails/gumball_1.mdl")
+    Balls = findToArray()
+    Screen:egpText(2,"Balls Detected. Found: "+toString(Balls:count())+". Starting cluster scan.",vec2(10,280))
+    Screen:egpSize(2,15)   
+    ClusterPos = vec(0,0,170)
+}
+#Cluster finder------------------------------------------------------------------
+if(Scan ==0 ){  
+        if(findCanQuery()==1 && !(I>=Balls:count())){
+                ClusterPos = vec(-11530,-7215,-4199)
+                findInSphere(Balls[I,entity]:pos(),1750)
+                HappyBalls[I,number] = findClipToModel("models/xqm/rails/gumball_1.mdl")
+                Screen:egpText(3,"Scanning balls: "+toString(ceil(((I/Balls:count())*100)))+"%",vec2(10,310))
+                Screen:egpSize(3,15)
+                I++
+        }
+        else{
+            #Posisjonen til en ball i det storste clusteret
+            Screen:egpText(3,"Scanning balls: "+toString(ceil(((I/Balls:count())*100)))+"%",vec2(10,310))
+            ClusterPos = ((Balls[HappyBalls:maxIndex(),entity]:pos())+vec(0,0,100))
+            Screen:egpText(4,"Cluster scan Complete. Biggest cluster at position:",vec2(10,340))
+            Screen:egpSize(4,15)
+            Screen:egpText(5,toString(ceil(ClusterPos)),vec2(10,370))
+            Screen:egpSize(5,15)
+            Scan = 1
+            print(HappyBalls:concat(","))
+        }
+}
+   
+
+

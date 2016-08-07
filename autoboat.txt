@@ -1,0 +1,20 @@
+@name Autoboat
+@inputs Manuell Auto VDV VDH Bearing Distanse 
+@outputs ThrusterL ThrusterR WeightL WeightR
+@persist 
+@trigger 
+
+#retning
+
+if(Bearing <= 0){
+    WeightL = abs(Bearing*15)
+}
+else{
+    WeightL = 1
+}
+if(Bearing >= 0){
+    WeightR = abs(Bearing*15) 
+}
+else{
+    WeightR = 1
+}

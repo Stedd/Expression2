@@ -1,0 +1,124 @@
+@name Drone2 MKI v1 (isweldedto)
+@inputs Start Stop T1x T1y T1z GRE:entity Gr1 TimerRead
+@outputs Apply:vector AngleReg:angle Debug Steg Grabber1 Timer Pos2d:vector2 Pos3d:vector
+@persist AngleReg:angle Apply:vector Dr1:entity Rangemin2d:vector2 Rangemax2d:vector2 RangeminS2d:vector2 RangemaxS2d:vector2 Pos2d:vector2 Rangemin3d:vector Rangemax3d:vector RangeminS3d:vector RangemaxS3d:vector Pos3d:vector PosS4:vector PosS5:vector PosS6:vector
+@trigger
+@model models/hunter/blocks/cube05x05x05.mdl 
+runOnTick(1)
+#Set Entity
+
+Dr1 = entity():isWeldedTo(1)
+    
+###Drone movement parameters------------------------
+    AFDF        = 20                    #Apply force delta faktor
+    AAFDF       = 13                    #Apply angular force delta faktor
+    PAF         = 2                     #Avviksforsterning Posisjon
+    AAF         = 7                     #Avviksforsterkning Vinkel
+    ZAdjust     = 80                    #Hoydeavvik
+    Rangemin2d    = vec2(-2,-2)         #2D Range min
+    Rangemax2d    = vec2(2,2)           #2D Range max
+    RangeminS2d   = vec2(-1,-1)         #2D Streng Range min
+    RangemaxS2d   = vec2(1,1)           #2D Streng Range max
+    Rangemin3d    = vec(-20,-20,-20)       #3D Range min
+    Rangemax3d    = vec(20,20,20)          #3D Range max
+    RangeminS3d   = vec(-10,-10,-10)    #3D Streng Range min
+    RangemaxS3d   = vec(10,10,10)       #3D Streng Range max
+
+#Keep Upright
+    AngleReg = (ang(0,0,0) - Dr1:angles())*Dr1:mass()*AAF
+    Dr1:applyAngForce(AngleReg+($AngleReg*AAFDF))
+    
+#Pos Kriterie
+
+Pos2d =(vec2(T1x,T1y)-(vec2(Dr1:pos():x(),Dr1:pos():y())))
+Pos3d =(vec(T1x,T1y,T1z)- Dr1:pos())
+
+#Hovedminne
+    if (Start==1){
+        Steg=1
+}
+    elseif (Stop==1){
+        Steg=0
+}
+
+#Idle position!
+    if(Steg==0){
+        Grabber1 = 0
+        Apply = (vec(782,-432,200) - Dr1:pos())*Dr1:mass()*PAF
+    }
+    
+#Safeguard bytte target
+    if(Steg ==3 && Gr1 == 0 && Grabber1 ==1){
+        Timer = 1
+            if(TimerRead>1){
+                Steg=1
+            }
+}
+#LEveranse Posisjoner
+    PosS5 = (vec(1925,200,270) - Dr1:pos())
+    PosS4 = (vec(1925,200,500) - Dr1:pos())
+    
+
+#Applyforce
+Dr1:applyForce(Apply+$Apply*AFDF) 
+
+   
+#Sekvens-----------------------------------------------------------------------------------------
+#1--------------
+if (Steg==1){
+    Apply = (vec(T1x,T1y,T1z+ZAdjust) - Dr1:pos())*Dr1:mass()*PAF
+    Grabber1 = 0
+    Timer = 0
+        if(inrange(Pos2d,Rangemin2d,Rangemax2d)){
+            Steg=2
+        }
+}
+#2--------------
+elseif(Steg==2){
+    Apply = (vec(T1x,T1y,T1z+ZAdjust) - Dr1:pos())*Dr1:mass()*PAF
+    Grabber1 = 0
+        if(inrange(Pos2d,Rangemin2d,Rangemax2d)){
+            Steg=3
+        }
+}
+#3--------------
+elseif(Steg==3){
+    Apply = (vec(T1x,T1y,T1z+ZAdjust) - Dr1:pos())*Dr1:mass()*PAF
+        if(inrange(Pos2d,RangeminS2d,RangemaxS2d)){
+            Grabber1 = 1
+            GRE:setMass(1)
+        }
+    
+            if((GRE:model()=="models/xqm/rails/gumball_1.mdl")){
+                Steg=4
+            }
+            if((GRE:model()=="models/props_lab/huladoll.mdl")){
+                Steg=0
+            }
+}
+#4--------------
+elseif(Steg==4){    
+    Apply = (PosS4)*Dr1:mass()*PAF    
+    if(inrange(PosS4,Rangemin3d,Rangemax3d)){
+        Steg=5
+    }
+}
+#5--------------
+elseif(Steg==5){    
+    Apply = PosS5*Dr1:mass()*PAF
+    if(inrange(PosS5,RangeminS3d,RangemaxS3d)){
+        Grabber1=0
+        
+        if((GRE:model()!="models/xqm/rails/gumball_1.mdl")){
+            Steg=6
+        }
+    }
+}
+#6--------------
+elseif(Steg==6){ 
+    Grabber1 = 0
+    Apply = PosS4*Dr1:mass()*PAF    
+    if(inrange(PosS4,Rangemin3d,Rangemax3d)){
+        Steg=1
+    }
+}

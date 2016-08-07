@@ -1,0 +1,7 @@
+@name Styring
+@inputs A D
+@outputs Venstre Hoyre M1
+
+Venstre = ((15 * (A & !D)) + (70 * (!A & D))) + ((!A & !D) * 43)
+Hoyre = ((70 * (A & !D)) + (15 * (!A & D))) + ((!A & !D) * 43)
+

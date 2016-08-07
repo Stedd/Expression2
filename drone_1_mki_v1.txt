@@ -1,0 +1,61 @@
+@name Drone 1 MKI v3
+@inputs Parameters:array DronePos:array
+@outputs Dronefree Steg
+@persist Steg Drone:entity ApplyForce:vector AngleReg:angle Mothership:array Yaw CloseBall:array Ball1Reg:vector Ball2Reg:vector Ball3Reg:vector Ball4Reg:vector
+@model models/hunter/blocks/cube05x05x05.mdl
+runOnTick(1)
+
+if(first()){
+
+#Find mothership    
+findByModel("models/Mechanics/roboticslarge/k1.mdl")
+Mothership = findToArray()
+   
+#Set Entity
+    Drone = entity()
+    Drone:setMass(200)
+    
+}
+#Keep Upright
+    AngleReg = (Mothership[1,entity]:angles() - Drone:angles())*Drone:mass()*Parameters[4,number]
+    Drone:applyAngForce(AngleReg+($AngleReg*Parameters[2,number]))
+
+#Applyforce
+    Drone:applyForce(ApplyForce+$ApplyForce*Parameters[1,number])
+    
+#Idle position
+if(Steg==0){
+Yaw = Mothership[1,entity]:angles():yaw()
+ApplyForce = ((vec((36*cos(Yaw)+50*sin(Yaw)),36*sin(Yaw)-50*cos(Yaw),0) + Mothership[1,entity]:pos()) - Drone:pos())*Drone:mass()*Parameters[3,number]
+}
+#Sekvens------------------------------------------------------------------------------------------------------------------------------------------------
+#1
+if(!(DronePos:exists(1) == 0)){
+    ApplyForce = ((DronePos[1,vector] + vec(0,0,Parameters[5,number])) - Drone:pos())*Drone:mass()*Parameters[3,number]
+    
+        if(inrange((vec2(DronePos[1,vector]:x(),DronePos[1,vector]:y()) - vec2(Drone:pos():x(),Drone:pos():y())),Parameters[6,vector2],Parameters[7,vector2])){
+            Steg = 2
+            
+        }
+}
+#2
+elseif(Steg==2){
+    ApplyForce = ((DronePos[1,vector] + vec(0,0,Parameters[5,number])) - Drone:pos())*Drone:mass()*Parameters[3,number]
+    findByModel("models/xqm/rails/gumball_1.mdl")
+    findClipToSphere(Drone:pos(),30)
+    CloseBall = findToArray()  
+        if(CloseBall:exists(1) > 0){
+            Steg=3
+        } 
+}
+#3
+elseif(Steg==3){
+    ApplyForce = ((DronePos[1,vector] + vec(0,0,Parameters[5,number])) - Drone:pos())*Drone:mass()*Parameters[3,number]
+    Ball1Reg = (Drone:pos()+vec(0,0,-30)) - CloseBall[1,entity]:pos()*CloseBall[1,entity]:mass()*5
+    CloseBall[1,entity]:applyForce(Ball1Reg+$Ball1Reg*5)
+}
+    
+    
+
+
+

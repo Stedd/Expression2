@@ -1,0 +1,18 @@
+@name 
+@inputs Prop:entity Timer
+@outputs M1:vector
+@persist M1:vector O:vector Aim:angle
+@trigger all
+runOnTick(1)
+Sin=sin(Timer)*100
+Cos=cos(Timer)*100
+O=owner():aimPos()
+P=Prop:elevation(O)
+Y=Prop:bearing(O)
+R=Prop:angles():roll()
+#Bevegelse
+M1 = (Prop:pos() - entity():pos() + vec(Sin,Cos,-50)) * 100
+Prop:applyForce(-M1+(-$M1*5))
+#Sikting
+Aim=(-ang(P,Y,R))*5
+Prop:applyAngForce(-Aim+-$Aim*2.1)

@@ -1,0 +1,9 @@
+@name Delta test
+@inputs Spedo
+@outputs Delta Delta2
+@persist 
+@trigger all
+
+Delta = $Spedo * 5
+Delta2 = $Spedo
+

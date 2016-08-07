@@ -1,0 +1,36 @@
+@name Motherchip MKI v1
+@inputs ClusterPos:vector
+@outputs Parameters:array
+@persist ClusterPos:vector Mothership:entity AngleReg:angle PosReg:vector
+@trigger
+@model models/Mechanics/roboticslarge/k1.mdl
+runOnTick(1)
+###Drone movement parameters------------------------
+if(first()){
+    AFDF        = 20                    #Apply force delta faktor
+    AAFDF       = 13                    #Apply angular force delta faktor
+    PAF         = 2                     #Avviksforsterning Posisjon
+    AAF         = 7                     #Avviksforsterkning Vinkel
+    ZAdjust     = 80                    #Hoydeavvik
+    Rangemin2d    = vec2(-2,-2)         #2D Range min
+    Rangemax2d    = vec2(2,2)           #2D Range max
+    RangeminS2d   = vec2(-1,-1)         #2D Streng Range min
+    RangemaxS2d   = vec2(1,1)           #2D Streng Range max
+    Rangemin3d    = vec(-20,-20,-20)       #3D Range min
+    Rangemax3d    = vec(20,20,20)          #3D Range max
+    RangeminS3d   = vec(-10,-10,-10)    #3D Streng Range min
+    RangemaxS3d   = vec(10,10,10)       #3D Streng Range max
+    
+    Parameters = array(AFDF,AAFDF,PAF,AAF,ZAdjust,Rangemin2d,Rangemax2d,RangeminS2d,RangemaxS2d,Rangemin3d,Rangemax3d,RangeminS3d,RangemaxS3d)
+}
+#Movement------------------------------------------------------------------------
+#Sette Mothership som entity
+    Mothership = entity()
+
+#Applyforce
+    PosReg= (ClusterPos - Mothership:pos())*Mothership:mass()*10
+    Mothership:applyForce(PosReg+$PosReg*5)
+    
+#Keep Upright
+    AngleReg = (ang(0,0,0) - Mothership:angles())*Mothership:mass()*20
+    Mothership:applyAngForce(AngleReg+($AngleReg*5))

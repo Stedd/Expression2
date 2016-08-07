@@ -1,0 +1,110 @@
+@name sekvens MKIII v5 (fungerende_syklus,posisjonskriterie istedenfor apply) EXPERIMENTAL
+@inputs Dr1:entity Start Stop T1x T1y T1z GRE:entity Gr1 TimerRead
+@outputs Apply:vector AngleReg:angle Pos:vector2 Steg Grabber1 Timer
+@persist AngleReg:angle Apply:vector Dr1:entity  
+@trigger 
+runOnTick(1)
+    
+###Drone movement parameters------------------------
+    AFDF        = 20                    #Apply force delta faktor
+    AAFDF       = 13                    #Apply angular force delta faktor
+    PAF         = 2                     #Avviksforsterning Posisjon
+    AAF         = 7                     #Avviksforsterkning Vinkel
+    ZAdjust     = 80                    #Hoydeavvik
+    #Rangemin    = vec(-70,-70,0)         #Range min
+    #Rangemax    = vec(70,70,0)           #Range max
+    #RangeminS   = vec(-7,-7,0)           #Range min
+    #RangemaxS   = vec(7,7,0)             #Range max
+
+#Keep Upright
+    AngleReg = (ang(0,0,0) - Dr1:angles())*Dr1:mass()*AAF
+    Dr1:applyAngForce(AngleReg+($AngleReg*AAFDF))
+    
+#Applyforce
+    Dr1:applyForce(Apply+$Apply*AFDF)    
+    
+#Pos Kriterie
+    Pos=(vec(T1x,T1y,0)-(vec(Dr1:pos():x(),Dr1:pos():y(),0)))
+
+#Hovedminne
+    if (Start==1){
+        Steg=1
+}
+    elseif (Stop==1){
+        Steg=0
+}
+
+#Idle position!
+    if(Steg==0){
+            Grabber1 = 0
+            Apply = (vec(782,-432,200) - Dr1:pos())*Dr1:mass()*PAF
+    }
+    
+#Safeguard bytte target
+    if(Steg ==3 && Gr1 == 0 && Grabber1 ==1){
+        Timer = 1
+            if(TimerRead>3){
+                Steg=1
+            }
+    }
+#[Sekvens
+#1--------------
+if (Steg==1){
+    Apply = (vec(T1x,T1y,T1z+ZAdjust) - Dr1:pos())*Dr1:mass()*PAF
+    Grabber1 = 0
+    Timer = 0
+        if(inrange(Pos,Rangemin,Rangemax)){
+            Steg=2
+        }
+}
+#2--------------
+elseif(Steg==2){
+    Apply = (vec(T1x,T1y,T1z+ZAdjust) - Dr1:pos())*Dr1:mass()*PAF
+    Grabber1 = 0
+        if(inrange(Pos,Rangemin,Rangemax)){
+            Steg=3
+        }
+}
+#3--------------
+elseif(Steg==3){
+    Apply = (vec(T1x,T1y,T1z+ZAdjust) - Dr1:pos())*Dr1:mass()*PAF
+    if(inrange(Pos,RangeminS,RangemaxS)){
+        Grabber1 = 1
+        GRE:setMass(1)
+    }
+    
+    if((GRE:model()=="models/xqm/rails/gumball_1.mdl")){
+        Steg=4
+    }
+}
+#4--------------
+elseif(Steg==4){
+    Apply = (vec(940,565,400) - Dr1:pos())*Dr1:mass()*PAF    
+    if(inrange(Pos,Rangemin,Rangemax)){
+        Steg=5
+    }
+}
+#5--------------
+elseif(Steg==5){ 
+    Apply = (vec(940,565,180) - Dr1:pos())*Dr1:mass()*PAF
+    if(inrange(Pos,RangeminS,RangemaxS)){
+        Grabber1=0
+        
+        if((GRE:model()!="models/xqm/rails/gumball_1.mdl")){
+            Steg=6
+        }
+    }
+}
+#6--------------
+elseif(Steg==6){ 
+    Grabber1 = 0
+    Apply = (vec(940,565,400) - Dr1:pos())*Dr1:mass()*PAF    
+    if(inrange(Pos,Rangemin,Rangemax)){
+        Steg=1
+    }
+}
+
+
+
+#]Debug
+

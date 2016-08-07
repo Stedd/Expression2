@@ -1,0 +1,9 @@
+@name PID fart
+@inputs Outputpid 
+@outputs Padrag
+@persist 
+@trigger all
+
+M1 = Outputpid + 100
+
+Paadrag = M1 / 200

@@ -1,0 +1,13 @@
+@name Autobaat Mark II V1
+@inputs Bearing
+@outputs VL HL Motor
+@persist 
+@trigger all
+
+# 2009-04-10: Vector:setX/setY/setZ and Angle:setPitch/setYaw/setRoll
+#             has changed behavior, some of your dupes may break (no errors)!
+#             Read the changelog to see how to fix your contraption!
+
+# Documentation and examples available at:
+# http://wiki.garrysmod.com/wiki/?title=Wire_Expression2
+# The community is available at http://www.wiremod.com

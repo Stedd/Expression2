@@ -1,0 +1,41 @@
+@name Harvester
+@inputs Gr1H Carrier:entity Dr1:entity  T1x T1y T1z 
+@outputs NxtT1 Gr1 RangeEr1:vector2
+@persist 
+@trigger 
+runOnTick(1)
+
+#Carrier movement--------------------------------
+    #Position
+    C1 = (vec(2000,-2000,300) - Carrier:pos())*100
+        Carrier:applyForce(C1+($C1*1)*1)
+    
+###Drone movement parameters------------------------
+    AFDF= 15    #Apply force delta faktor
+    AAFDF = 7   #Apply angular force delta faktor
+    PAF = 15    #Avviksforsterning Posisjon
+    AAF = 20    #Avviksforsterkning Vinkel
+    ZAdjust = 90    #Hydeavvik
+    Rangemin = vec2(-50,-50)
+    Rangemax = vec2(50,50)
+#Drone 1 Movement----------------------------------
+
+###Ball Found criteria
+RangeEr1 =(vec2(T1x,T1y)-(vec2(Dr1:pos():x(),Dr1:pos():y())))
+RangeEr2 =(vec2(500,500)-(vec2(Dr1:pos():x(),Dr1:pos():y())))
+#Angle   
+    AT1 = (ang(0,0,0) - Dr1:angles())*AAF
+    Dr1:applyAngForce(AT1+($AT1*AAFDF))
+        
+        if(inrange(RangeEr1,Rangemin,Rangemax)){
+            Gr1 = 1
+            Dpos1= (vec(500,500,100) - Dr1:pos())*PAF
+            Dr1:applyForce(Dpos1+($Dpos1*AFDF))
+}
+        elseif (inrange(RangeEr2,Rangemin,Rangemax))
+    {
+            Gr1 = 0
+            T1 = (vec(T1x,T1y,(T1z+ZAdjust)) - Dr1:pos())*PAF
+            Dr1:applyForce(T1+($T1*AFDF))
+    }       
+

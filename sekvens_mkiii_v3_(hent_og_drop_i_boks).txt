@@ -1,0 +1,60 @@
+@name Sekvens MKIII v3 (hent og drop i boks)
+@inputs Dr1:entity Start Stop T1x T1y T1z GRE:entity Gr1
+@outputs Apply:vector AngleReg:angle Debug Steg Grabber1
+@persist AngleReg:angle Apply:vector Dr1:entity Rangemin:vector Rangemax:vector
+@trigger 
+runOnTick(1)
+    
+###Drone movement parameters------------------------
+    AFDF        = 20            #Apply force delta faktor
+    AAFDF       = 13            #Apply angular force delta faktor
+    PAF         = 2             #Avviksforsterning Posisjon
+    AAF         = 15            #Avviksforsterkning Vinkel
+    ZAdjust     = 90            #Hoydeavvik
+    Rangemin    = vec(-50,-50,0) #Range min
+    Rangemax    = vec(50,50,180)   #Range max
+
+#Keep Upright
+    AngleReg = (ang(0,0,0) - Dr1:angles())*AAF
+    Dr1:applyAngForce(AngleReg+($AngleReg*AAFDF))
+
+#Hovedminne
+if (Start==1){
+    Steg=1
+}
+elseif (Stop==1){
+    Steg=0
+}
+
+#Idle position
+if(Steg==0){
+        Apply = (vec(782,-432,200) - Dr1:pos())*Dr1:mass()*PAF
+    }
+#Sekvens
+#1
+if (Steg==1){
+    Apply = (vec(T1x,T1y,T1z+ZAdjust) - Dr1:pos())*Dr1:mass()*PAF
+    if(inrange(Apply,Rangemin,Rangemax)){
+        Steg=2
+    }
+}
+#2
+elseif(Steg==2){
+    Apply = (vec(T1x,T1y,T1z+ZAdjust) - Dr1:pos())*Dr1:mass()*PAF
+    Grabber = 1
+    if(inrange(Apply,Rangemin,Rangemax&&GRE:model()==")){
+        Steg=3
+    }
+}
+#3
+elseif(Steg==3){ 
+    Apply = (vec(1265,500,200) - Dr1:pos())*Dr1:mass()*PAF
+    if(inrange(Apply,Rangemin,Rangemax)){
+        Steg=1
+    }
+}
+
+
+    
+Dr1:applyForce(Apply+$Apply*AFDF)
+Debug = inrange(Apply,vec(-5,-5,135),vec(5,5,155))

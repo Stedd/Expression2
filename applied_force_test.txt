@@ -1,0 +1,16 @@
+@name Applied Force Test
+@inputs Prop:entity Vector:vector
+@outputs 
+@persist Aim:angle M1:vector O:vector 
+@trigger all
+runOnTick(1)
+
+M1 = (Prop:pos() - entity():pos() + vec(0,50,-200)) * 2000
+O = owner():aimPos()
+P = Prop:elevation(O)
+Y = Prop:bearing(O)
+R = Prop:angles():roll()
+Prop:applyForce(-Vector+-$Vector*20)
+Aim = -ang(P,Y,R) * 500
+Prop:applyAngForce(Aim+$Aim*11)
+

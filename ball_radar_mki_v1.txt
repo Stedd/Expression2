@@ -1,0 +1,40 @@
+@name Ball radar MKI v1
+@inputs Rescan
+@outputs ClusterPos:vector HappyBalls:array I Balls:array Debug
+@persist Balls:array HappyBalls:array Clusterpos:vector Scan
+@trigger 
+interval(59)
+#Search and put in array---------------------------------------------------------
+if(first()|~Rescan){
+    print("Scan starting**********************")
+    Balls           = array()
+    HappyBalls      = array()   
+    print("Arrays reset")
+    findByModel("models/xqm/rails/gumball_1.mdl")
+    Balls = findToArray()
+    print("first complete")
+}
+
+if(Scan==0){
+        if(findCanQuery()==1 && !(I>=Balls:count())){
+                findInSphere(Balls[I,entity]:pos(),600)
+                HappyBalls[I,number] = findClipToModel("models/xqm/rails/gumball_1.mdl")
+                print((I/Balls:count())*100)
+                I++
+        }
+        else{
+            print("Scan complete")
+            Scan = 1
+        }
+}
+    
+    #print("Scan Complete")
+    #print("Found: "+Balls:count()+" Balls")
+    #print(HappyBalls)
+    #print("Biggest cluster ball index:"+HappyBalls:maxIndex())
+    #print("end**********************")
+   
+#Posisjonen til en ball i det storste clusteret
+ClusterPos = ((Balls[HappyBalls:maxIndex(),entity]:pos())+vec(0,0,100))
+
+Debug = findCanQuery()

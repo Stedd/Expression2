@@ -1,0 +1,104 @@
+@name Motherchip MKII v3
+@inputs Scan ClusterPos:vector Balls:array Drone1free Drone2free Drone3free Drone4free
+@outputs Debug:vector Steg ApplyForce:vector Dronepos1:array Dronepos2:array Dronepos3:array Dronepos4:array Parameters:array CloseBalls:array
+@persist ClusterPos:vector Mothership:entity AngleReg:angle ApplyForce:vector CloseBalls:array Rangemin2d:vector2 Rangemax2d:vector2 Steg Search
+@trigger
+@model models/Mechanics/roboticslarge/k1.mdl
+runOnTick(1)
+
+#   http://wiki.wiremod.com/wiki/Expression_2
+
+if(first()){
+    ###Drone movement parameters------------------------
+    AFDF        = 20                    #Apply force delta faktor
+    AAFDF       = 13                    #Apply angular force delta faktor
+    PAF         = 2                     #Avviksforsterning Posisjon
+    AAF         = 7                     #Avviksforsterkning Vinkel
+    ZAdjust     = 40                    #Hoydeavvik
+    Rangemin2d    = vec2(-2,-2)         #2D Range min
+    Rangemax2d    = vec2(2,2)           #2D Range max
+    RangeminS2d   = vec2(-1,-1)         #2D Streng Range min
+    RangemaxS2d   = vec2(1,1)           #2D Streng Range max
+    Rangemin3d    = vec(-20,-20,-20)    #3D Range min
+    Rangemax3d    = vec(20,20,20)       #3D Range max
+    RangeminS3d   = vec(-10,-10,-10)    #3D Streng Range min
+    RangemaxS3d   = vec(10,10,10)       #3D Streng Range max
+    #Drone movement parameters array(send to drones)
+    Parameters = array(AFDF,AAFDF,PAF,AAF,ZAdjust,Rangemin2d,Rangemax2d,RangeminS2d,RangemaxS2d,Rangemin3d,Rangemax3d,RangeminS3d,RangemaxS3d)
+    #Reset sekvens
+    Steg = 0
+    #Set Entity
+    Mothership = entity()
+    #Reset Array
+    CloseBalls = array()
+    Dronepos1 = array()
+    Dronepos2 = array()
+    Dronepos3 = array()
+    Dronepos4 = array()
+}
+#Movement------------------------------------------------------------------------
+#Keep Upright
+    AngleReg = (ang(0,0,0) - Mothership:angles())*Mothership:mass()*16
+    Mothership:applyAngForce(AngleReg+($AngleReg*10))
+    
+#Applyforce
+    Mothership:applyForce(ApplyForce+$ApplyForce*3)
+    
+#Idle Position
+    if(Steg==0){
+        ApplyForce = (vec(-11530,-7215,-4199) - Mothership:pos())*Mothership:mass()*5
+    }
+    
+#Hovedminne
+    if (~Scan){
+        Steg=1
+    }
+
+#Sekvens-------------------------------------------------------------------------
+#1--------------
+if(Steg==1){
+    ApplyForce = (ClusterPos - Mothership:pos())*Mothership:mass()*10
+        if(inrange((vec2(ClusterPos:x(),ClusterPos:y()) - vec2(Mothership:pos():x(),Mothership:pos():y())),Rangemin2d,Rangemax2d)){
+            Steg = 2  
+        }
+}
+#2--------------
+elseif(Steg==2){
+    print("test")
+    ApplyForce = (ClusterPos - Mothership:pos())*Mothership:mass()*10
+    findByModel("models/xqm/rails/gumball_1.mdl")
+    findClipToSphere(Mothership:pos(),1750)
+    CloseBalls = findToArray()  
+        if(CloseBalls:exists(1) > 0){
+            Steg=3
+        }      
+}
+#3--------------
+elseif(Steg==3){
+    ApplyForce = (ClusterPos - Mothership:pos())*Mothership:mass()*10
+    Dronepos1 = array(CloseBalls[1,entity]:pos(),CloseBalls[5,entity]:pos(),CloseBalls[9,entity]:pos(),CloseBalls[13,entity]:pos())
+    Dronepos2 = array(CloseBalls[2,entity]:pos(),CloseBalls[6,entity]:pos(),CloseBalls[10,entity]:pos(),CloseBalls[14,entity]:pos())
+    Dronepos3 = array(CloseBalls[3,entity]:pos(),CloseBalls[7,entity]:pos(),CloseBalls[11,entity]:pos(),CloseBalls[15,entity]:pos())
+    Dronepos4 = array(CloseBalls[4,entity]:pos(),CloseBalls[8,entity]:pos(),CloseBalls[12,entity]:pos(),CloseBalls[16,entity]:pos())
+        if(Drone1free == 1 && Drone2free == 1 && Drone3free == 1 && Drone4free == 1){
+            Steg=4
+        }
+}
+#4--------------
+elseif(Steg==4){
+    #VENT TIL DRONER HAR HENTET BALLER   
+    ApplyForce = (ClusterPos - Mothership:pos())*Mothership:mass()*10
+        if(Drone1free == 1 && Drone2free == 1 && Drone3free == 1 && Drone4free == 1){
+            Steg=5
+        }
+}
+#5--------------
+elseif(Steg==5){   
+                #deliver balls position
+    ApplyForce = (vec(-6650,7190,-3447) - Mothership:pos())*Mothership:mass()*10
+            if(inrange(ApplyForce,Rangemin3d,Rangemax3d)){
+                Steg=0
+            }
+    }
+
+Debug = Dronepos1[1,vector]

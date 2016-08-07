@@ -1,0 +1,88 @@
+@name Props Madness - By Moglizorz
+@outputs Mode Counter Max MeS:string AttackS:string ZP LeadSound
+@persist List:array Col Me:entity Attack:entity PLA:entity
+runOnTick(1)
+runOnChat(1)
+if(first()){Me=owner(),C1=0,C2=0}
+if((chatClk())&((lastSpoke()==owner())|(lastSpoke()==Me))){
+    if ((lastSpoke()==owner())&(lastSaid()=="!remove")) {selfDestruct(), hint("Chip removed",5)}
+    if ((lastSpoke()==Me)&(lastSaid()=="!col on")) {Col=1}
+    if ((lastSpoke()==Me)&(lastSaid()=="!col off")) {Col=0}
+    if ((lastSpoke()==Me)&(lastSaid()=="!stop")) {Mode=0, Attack=noentity(), AttackS=""}
+    if ((lastSpoke()==owner())&(lastSaid():sub(1,8)=="!player ")) {
+      MeS=lastSaid():sub(9,lastSaid():length()), Mode=0, Attack=noentity(), AttackS=""
+    }
+    if ((lastSpoke()==Me)&(lastSaid():sub(1,8)=="!attack ")) {
+      AttackS=lastSaid():sub(9,lastSaid():length())
+      Mode=2
+    }
+    if((lastSpoke()==owner())&(lastSaid()=="!owner")){Me=owner(), MeS="", Mode=0, Attack=noentity(), AttackS=""}
+}
+if((MeS!="")&(Me:name():find(MeS)==0)){
+    Me=findPlayerByName(MeS)
+}
+if((AttackS!="")&(Attack:name():find(AttackS)==0)){
+    Attack=findPlayerByName(AttackS)
+}
+if(!chatClk()){#so main program doesn't overload from people typing
+    findIncludePlayerProps(owner())
+    findByClass("prop_physics") 
+#    findByClass("npc_rollermine")
+    if(Max!=findToArray():count()){
+        List=findToArray()
+        Max=List:count()
+    }
+    if(Me:isCrouch()){Mode=1, AttackS="", Attack=noentity()}
+    elseif(!Me:isCrouch()&(Mode!=2)){Mode=0}
+    if(Mode==0){
+        if(LeadSound){soundStop(1),LeadSound=0}
+        while(C1<8){
+                C1++
+                Counter++
+                EE=List:entity(Counter)
+                if(EE:mass()!=50000){EE:setMass(50000)}
+                if(Col){EE:setColor(randint(255),randint(255),randint(255)),EE:setMaterial("hunter/myplastic")}else{EE:setColor(255,255,255),EE:setMaterial("")}
+                AddCircle=curtime()*150+360/Max*Counter
+                CircMult=50*Max/pi()
+                CircZPlus=sin(360/Max*Counter)*50
+                EE:applyForce(((Me:shootPos()+vec(sin(AddCircle)*CircMult,cos(AddCircle)*CircMult,75+CircZPlus)-EE:pos())*10-EE:vel())*EE:mass())
+                EE:applyAngForce((-EE:angVel()-EE:angles())*EE:mass()*ang(1,0,1))
+        }
+        if(Counter>Max){Counter=0}
+    }
+    else{
+        EELead=List:entity(1)
+        if(!LeadSound){EELead:soundPlay(1,0,"npc/zombie/moan_loop"+randint(1,4)+".wav"),LeadSound=1}
+        if(Attack==noentity()){
+            ZP=(EELead:massCenter():setZ(0)):distance(Me:aimPos():setZ(0))/2
+            if(ZP>720){ZP=720}    
+            EELead:applyForce(((Me:aimPos()+vec(0,0,0+ZP)-EELead:massCenter())*10-EELead:vel())*EELead:mass())
+        }else{
+            ZP=(EELead:massCenter():setZ(0)):distance(Attack:pos():setZ(0))
+            if(ZP>1440){ZP=1440}   
+            EELead:applyForce(((Attack:pos()+vec(0,0,0+ZP)-EELead:massCenter())*10-EELead:vel())*EELead:mass()) 
+        }
+        while(C2<14){
+            C2++
+            Counter++
+            EE=List:entity(Counter)
+            EEOld=List:entity(Counter-1)
+            if(Col){EE:setColor(randint(255),randint(255),randint(255)),EE:setMaterial("hunter/myplastic")}else{EE:setColor(255,255,255),EE:setMaterial("")}
+            EE:applyForce(((EEOld:massCenter()-EE:massCenter())*10-EE:vel())*EE:mass())
+        }
+        if(Counter>Max){Counter=1}
+    }
+}#end of chatclk statement
+
+if(PLA!=owner()) { 
+    PLA=owner()
+    hint("-- Balls of Steel --",7)
+    hint("Commands:",7)
+    hint("!attack PLAYER - Puts it in snake mode, and flys to the player.",7)
+    hint("!col on/off - Toggles the flashing colors, and matt/orignal material.",7)
+    hint("CROUCH - Puts it into snake mode, and follows your mouse.",7)
+    hint("!player PLAYER - Gives possesion of the snake to another player, they have access to all of the above commands.",7)
+    hint("!owner - Returns possesion to the owner, does nothing if it's already the owners.",7)
+    hint("!remove - Destroys the Expression2, and the balls drop (LOL RUDE).",7)
+    hint("--- By Moglizorz ---",7)
+}
