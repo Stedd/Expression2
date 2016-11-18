@@ -1,0 +1,166 @@
+@name SCARA Robot
+@inputs Home:vector Ref:vector JogT1 JogT2 JogD3 IK
+@outputs GlobalT2:vector GlobalTCP:vector CTh2 STh2 CTh1 STh1 Th1 Th2 X Y Z A B C PosT1h:vector4
+@persist L1 L2 L3 T11:matrix4 T12:matrix4 T13:matrix4 T21:matrix4 T22:matrix4 T31:matrix4 T32:matrix4 Posvec:matrix4 TCPerror:vector T2error:vector CTheta2 Theta2 Th1 Th2 X Y A B C T1:matrix4 T2:matrix4 T3:matrix4 Ttot:matrix4 T1h:matrix4  T11h:matrix4 T12h:matrix4 T13h:matrix4 PosT1h:vector4 PosT2h:vector4 T2h:matrix4 T21h:matrix4 T22h:matrix4
+@trigger 
+
+#Holo Generator
+
+
+holoCreate(1,Home)
+holoModel(1,"sphere")
+holoCreate(2,Home)
+holoModel(2,"sphere")
+holoCreate(3,Home)
+holoModel(3,"cube")
+holoCreate(4,Home)
+holoModel(4,"cube")
+holoCreate(5,Home)
+holoModel(5,"cube")
+holoCreate(6,Home)
+holoModel(6,"cylinder")
+
+
+# Lengder
+
+    #L1
+        L1 = 70
+    #L2
+        L2 = 70
+    # L3 
+        L3 = 70
+    #L4
+        L4 = 150
+
+#Invers Kinematikk-----------------------------------------
+if(IK == 1)
+{
+    #X
+        X = Ref:x() - Home:x()
+    #Y
+        Y = Ref:y() - Home:y()
+    #Y
+        Z = Ref:z() - Home:z()
+        
+    #Theta2----------------
+    
+        CTh2 = (((X^2)+(Y^2)-(L3^2)-(L2^2))/(2*L3*L2))
+        Th2 =  acos(CTh2)
+        STh2 = sqrt(1-(CTh2^2))
+   
+    #Theta1----------------
+    
+        "
+        A = L3*CTh2
+        B = (L3*STh2)/(A)
+        C = ((L3^2)*(STh2^2))/(A)
+        STh1 = (((Y)/(A))-((B*X)/(A)))*((1)/(1-((C)/(A))))
+        Th1 = asin(STh1)
+        "
+    
+    # Test Forelesningsnotat
+       
+        if (X<0)
+        {
+            Th1 =  180 + atan(Y/X)-atan((L3*STh2)/(L2+(L3*CTh2))) 
+        }
+        else
+        {
+            Th1 = atan(Y/X)-atan((L3*STh2)/(L2+(L3*CTh2)))
+        } 
+    
+    #D3
+    
+        D3 = Z - L1
+}
+#Manual Mode-----------------------------------------
+else
+{
+Th1 = JogT1
+
+Th2 = JogT2
+
+D3 = Z - JogD3
+}
+#DH TABLE---------------------------------------------------------------------------
+
+    #T11 Rotz(Th1)
+    T11 = matrix4(cos(Th1),-sin(Th1),0,0,sin(Th1),cos(Th1),0,0,0,0,1,0,0,0,0,1)
+    #T12 Transz(L1)
+    T12 = matrix4(1,0,0,0,0,1,0,0,0,0,1,L1,0,0,0,1)
+    #T13 Transx(L2)
+    T13 = matrix4(1,0,0,L2,0,1,0,0,0,0,1,0,0,0,0,1)
+    #T21 RotX(Th2)
+    #T21 = matrix4(1,0,0,0,0,cos(Th2),-sin(Th2),0,0,sin(Th2),cos(Th2),0,0,0,0,1)
+    T21 = matrix4(cos(Th2),-sin(Th2),0,0,sin(Th2),cos(Th2),0,0,0,0,1,0,0,0,0,1)
+    #T22 Transx(L3)
+    T22 = matrix4(1,0,0,L3,0,1,0,0,0,0,1,0,0,0,0,1)
+    #T31 Transz(D3)
+    T31 = matrix4(1,0,0,0,0,1,0,0,0,0,1,D3,0,0,0,1)
+    #T32 Rotx(180)
+    T32 =matrix4(1,0,0,0,0,cos(0),-sin(0),0,0,sin(0),cos(0),0,0,0,0,1)
+    
+    T1 = T11 * T12 * T13
+    
+    T2 = T21 * T22
+    
+    T3 = T31 * T32
+    
+    Ttot = (T1*T2*T3)
+
+#Holo Joint 1
+
+    PosT2 = (T1):column(4)
+    GlobalT2 = Home + vec(PosT2:x(),PosT2:y(),PosT2:z()) 
+
+    holoPos(1,GlobalT2)
+    holoAng(1,ang(0,Th1,0))
+    holoScale(1, vec(0.7,0.7,0.7))
+
+#Holo Joint 2
+
+    PosTCP = Ttot:column(4)
+    GlobalTCP = Home + vec(PosTCP:x(),PosTCP:y(),PosTCP:z())
+
+    holoPos(2,GlobalTCP)
+    holoAng(2,ang(0,Th1+Th2,0))
+    holoScale(2, vec(0.4,0.4,0.4))
+
+# Holo Robot
+
+    #L1------------------------------------------------------------------------------
+    holoPos(3, Home + vec(0,0,L1/2))
+    holoScale(3,vec(0.25,0.25,L1/12))
+    holoAng(3,ang(0,Th1,0))
+    
+    #L2------------------------------------------------------------------------------
+    T11h = matrix4(cos(Th1),-sin(Th1),0,0,sin(Th1),cos(Th1),0,0,0,0,1,0,0,0,0,1)
+    #T12 Transz(L1)
+    T12h = matrix4(1,0,0,0,0,1,0,0,0,0,1,L1,0,0,0,1)
+    #T13 Transx(L2)
+    T13h = matrix4(1,0,0,(L2/2),0,1,0,0,0,0,1,0,0,0,0,1)
+    T1h = T11h * T12h * T13h
+    PosT1h = T1h:column(4)
+    holoPos(4, Home + vec(PosT1h:x(),PosT1h:y(),PosT1h:z()))
+    #holoPos(4, Home + vec(0,0,L1/2))
+    holoScale(4,vec(L2/12,0.25,0.25))
+    holoAng(4,ang(0,Th1,0))
+    
+    
+    #L3------------------------------------------------------------------------------
+    T21h = matrix4(cos(Th2),-sin(Th2),0,0,sin(Th2),cos(Th2),0,0,0,0,1,0,0,0,0,1)
+    #T22 Transx(L3)
+    T22h = matrix4(1,0,0,L3/2,0,1,0,0,0,0,1,0,0,0,0,1)
+    T2h = T1 * (T21h * T22h) 
+    PosT2h = T2h:column(4)
+    
+    holoPos(5, Home + vec(PosT2h:x(),PosT2h:y(),PosT2h:z()))
+    #holoPos(4, Home + vec(0,0,L1/2))
+    holoScale(5,vec(L3/12,0.25,0.25))
+    holoAng(5,ang(0,Th2+Th1,0))
+
+    #L4------------------------------------------------------------------------------
+    holoPos(6, GlobalTCP + vec(0,0,L4/2))
+    holoScale(6,vec(0.10,0.10,L4/12))
+    holoAng(6,ang(0,0,0))
+    
