@@ -1,0 +1,51 @@
+@name aMaze
+@inputs Vector:vector Aimvector:vector
+@outputs Gyrodbg:angle
+@persist Dmass Drone:entity A:angle V:vector Scanner:ranger
+@trigger 
+@model models/props_phx/construct/metal_wire1x1x1.mdl
+runOnTick(1)
+
+if (first())
+{
+    CtCDist = 95
+}
+
+
+
+function void wallScan(){
+
+#N
+ScanDir = vec(-1,0,0)
+#S
+ScanDir = vec(-1,0,0)
+#E
+ScanDir = vec(-1,0,0)
+#W
+ScanDir = vec(-1,0,0)
+
+#ranger(10,-300,0) 
+Scanner = rangerOffset(500,Drone:pos(),ScanDir)
+print(Scanner:distance())
+}
+
+function void keepPos(Tar:vector)
+{
+    #Mass
+Drone = entity()
+Drone:setMass(4000)
+Dmass = Drone:mass()
+    #Angle 
+A = -ang(Drone:angles():pitch(),Drone:angles():yaw(),Drone:angles():roll())
+Drone:applyAngForce((A + $A*15)*10*Dmass)
+    #Applyforce
+V = (Tar-entity():massCenterL()-Drone:pos())
+Drone:applyForce((V + $V*6)*10*Dmass)
+}
+
+keepPos(Vector)
+wallScan()
+
+
+
+
