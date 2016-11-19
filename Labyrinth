@@ -1,50 +1,108 @@
 @name aMaze
-@inputs Vector:vector Aimvector:vector
-@outputs Gyrodbg:angle
-@persist Dmass Drone:entity A:angle V:vector Scanner:ranger
+@inputs Move1Step Start:vector Aimvector:vector
+@outputs Gyrodbg:angle Ndist Sdist Edist Wdist
+@persist  Ptrig Step:vector VirtPos:vector NDist SDist EDist WDist CtCDist DronePos:vector Dmass Drone:entity A:angle V:vector Scanner:ranger [ScanDir,DirN, DirS, DirE, DirW]:vector
 @trigger 
-@model models/props_phx/construct/metal_wire1x1x1.mdl
+@model models/mechanics/wheels/wheel_rounded_36.mdl
 runOnTick(1)
 
 if (first())
 {
-    CtCDist = 95
+    #Center Center Distance
+    CtCDist = 95.353
+    
+    ##Define directions
+    DirN = vec(-1,0,0)
+    DirS = vec(1,0,0)
+    DirE = vec(0,1,0)
+    DirW = vec(0,-1,0)
+    
+    #Init Some values
+    VirtPos = Start
+    Step = vec(0,0,0)
+    Ptrig = 0
 }
 
+#######Functions#######
 
-
-function void wallScan(){
-
-#N
-ScanDir = vec(-1,0,0)
-#S
-ScanDir = vec(-1,0,0)
-#E
-ScanDir = vec(-1,0,0)
-#W
-ScanDir = vec(-1,0,0)
-
-#ranger(10,-300,0) 
-Scanner = rangerOffset(500,Drone:pos(),ScanDir)
-print(Scanner:distance())
-}
-
-function void keepPos(Tar:vector)
+function void keepPos(TargetVector:vector)
 {
     #Mass
-Drone = entity()
-Drone:setMass(4000)
-Dmass = Drone:mass()
+    Drone = entity()
+    Drone:setMass(4000)
+    Dmass = Drone:mass()
     #Angle 
-A = -ang(Drone:angles():pitch(),Drone:angles():yaw(),Drone:angles():roll())
-Drone:applyAngForce((A + $A*15)*10*Dmass)
+    A = -ang(Drone:angles():pitch(),Drone:angles():yaw(),Drone:angles():roll())
+    Drone:applyAngForce((A + $A*15)*10*Dmass)
     #Applyforce
-V = (Tar-entity():massCenterL()-Drone:pos())
-Drone:applyForce((V + $V*6)*10*Dmass)
+    V = (TargetVector+vec(0,0,30)-DronePos)
+    Drone:applyForce((V + $V*6)*10*Dmass)
 }
 
-keepPos(Vector)
+function number scanner(ScanDir:vector)
+{
+    Scanner = rangerOffset(2000,DronePos,ScanDir)
+    return Scanner:distance()
+}
+
+function void wallScan()
+{
+    #N
+    Ndist = scanner(DirN)
+    #S
+    Sdist = scanner(DirS)
+    #E
+    Edist = scanner(DirE)
+    #W
+    Wdist = scanner(DirW)
+}
+
+function vector step(StepDir:vector, StepDist)
+{
+    Step = StepDir*CtCDist*round((StepDist-47.58)/CtCDist)
+    return Step
+}
+
+function void decider()
+{
+   if(Move1Step && Ptrig==0)
+    {
+        Step = step(DirN,Ndist)
+        Ptrig = 1  
+    }
+    else
+    {
+     Step = vec(0,0,0)   
+    }
+
+    #step(DirN,Ndist)
+    #step(DirS,Sdist)
+    #step(DirE,Edist)
+    #step(DirW,Wdist)
+
+}
+
+function void mover()
+{
+     VirtPos += Step
+}
+
+function void saver()
+{
+    
+}
+
+
+#######Main Loop#######
+
+DronePos = Drone:pos()+entity():massCenterL()
+#print(entity():massCenterL())
+keepPos(VirtPos)
 wallScan()
+decider()
+mover()
+
+#saver()
 
 
 
