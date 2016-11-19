@@ -1,7 +1,7 @@
 @name aMaze
 @inputs Move1Step Start:vector Aimvector:vector
-@outputs Gyrodbg:angle Ndist Sdist Edist Wdist
-@persist  Ptrig Step:vector VirtPos:vector NDist SDist EDist WDist CtCDist DronePos:vector Dmass Drone:entity A:angle V:vector Scanner:ranger [ScanDir,DirN, DirS, DirE, DirW]:vector
+@outputs Gyrodbg:angle Ndist Sdist Edist Wdist Moving
+@persist Holdtimer PosError:vector OpenPaths:table Ptrig Step:vector VirtPos:vector NDist SDist EDist WDist CtCDist DronePos:vector Dmass Drone:entity A:angle V:vector Scanner:ranger [ScanDir,DirN, DirS, DirE, DirW]:vector
 @trigger 
 @model models/mechanics/wheels/wheel_rounded_36.mdl
 runOnTick(1)
@@ -19,8 +19,9 @@ if (first())
     
     #Init Some values
     VirtPos = Start
-    Step = vec(0,0,0)
+    Step = Start
     Ptrig = 0
+    Moving = 0
 }
 
 #######Functions#######
@@ -29,14 +30,14 @@ function void keepPos(TargetVector:vector)
 {
     #Mass
     Drone = entity()
-    Drone:setMass(4000)
+    Drone:setMass(10000)
     Dmass = Drone:mass()
     #Angle 
     A = -ang(Drone:angles():pitch(),Drone:angles():yaw(),Drone:angles():roll())
-    Drone:applyAngForce((A + $A*15)*10*Dmass)
+    Drone:applyAngForce((A + $A*30)*Dmass)
     #Applyforce
     V = (TargetVector+vec(0,0,30)-DronePos)
-    Drone:applyForce((V + $V*6)*10*Dmass)
+    Drone:applyForce((V + $V*30)*Dmass)
 }
 
 function number scanner(ScanDir:vector)
@@ -59,32 +60,62 @@ function void wallScan()
 
 function vector step(StepDir:vector, StepDist)
 {
-    Step = StepDir*CtCDist*round((StepDist-47.58)/CtCDist)
+    Step = Start+(StepDir*CtCDist*round((StepDist-47.58)/CtCDist))
     return Step
 }
 
 function void decider()
 {
-   if(Move1Step && Ptrig==0)
+    if(Moving == 0)
     {
-        Step = step(DirN,Ndist)
-        Ptrig = 1  
+        if (Ndist >50 && random(1)>0.25){
+            print("N")
+            Moving = 1
+            Holdtimer = 0
+            step(DirN,Ndist)
+        }
+        if (Sdist >50 && random(1)>0.25){
+            print("S")
+            Moving =1
+            Holdtimer = 0
+            step(DirS,Sdist)
+        }
+        if (Edist >50 && random(1)>0.25){
+            print("E")
+            Moving = 1
+            Holdtimer = 0
+            step(DirE,Edist)
+        }
+        if (Wdist >50 && random(1)>0.25){
+            print("W")
+            Moving = 1
+            Holdtimer = 0
+            step(DirW,Wdist)
+        }
     }
-    else
-    {
-     Step = vec(0,0,0)   
-    }
-
+if(Move1Step){
+    Step = Start
+}
     #step(DirN,Ndist)
     #step(DirS,Sdist)
     #step(DirE,Edist)
     #step(DirW,Wdist)
-
 }
 
 function void mover()
 {
-     VirtPos += Step
+    #print(Step)
+    VirtPos = Step
+    PosError = VirtPos+vec(0,0,30)-DronePos+vec(0,0,30)
+    #print("Fiskekaker"+PosError)
+    if (PosError:x()<0.03 && PosError:y()<0.03){
+        Holdtimer++
+        if (Holdtimer > 200){
+            print("Fiskeboller i hvitsaus")
+            Moving = 0
+        }
+    
+    }
 }
 
 function void saver()
@@ -101,7 +132,6 @@ keepPos(VirtPos)
 wallScan()
 decider()
 mover()
-
 #saver()
 
 
